@@ -1,0 +1,11 @@
+{
+  "firstName": "Jhon",
+  "lastName": "Adams",
+  "company": "Test-It Co.",
+  "address": "1600 Pennsylvania Avenue NW",
+  "country": "United States",
+  "state": "D.C.",
+  "city": "Washington",
+  "zipCode": "20500",
+  "mobileNumber": "534534543"
+}

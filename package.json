@@ -1,0 +1,13 @@
+{
+  "devDependencies": {
+    "@types/cypress": "^1.1.6",
+    "@types/node": "^25.5.0",
+    "cypress": "^15.12.0",
+    "typescript": "^5.9.3"
+  },
+  "scripts": {
+    "run:lab3": "cypress run --spec 'cypress/e2e/lab3/**'",
+    "run:lab4:progs": "cypress run --spec 'cypress/e2e/lab4/{lab1-2-progs,lab2-2-progs}/**'",
+    "run:lab4:progs:chrome": "cypress run --browser chrome --spec 'cypress/e2e/lab4/{lab1-2-progs,lab2-2-progs}/**'"
+  }
+}
