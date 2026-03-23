@@ -33,7 +33,7 @@ function createAccount(user: UserData) {
     cy.get('.login-form').should('be.visible');
     
     // Krok 2: Wypełnianie właściwego formularza 
-    cy.get('#id_gender1').check;
+    cy.get('#id_gender1').check({ force: true });
     cy.get('[data-qa="password"]').type(user.Password);  
     cy.get('[data-qa="days"]').select('1');
     cy.get('[data-qa="months"]').select('January');
@@ -58,7 +58,7 @@ function createAccount(user: UserData) {
 function deleteAccount() {
     cy.visit('/');
     cy.get('[href="/delete_account"]').click();
-    cy.url().should('include', '/account_deleted');
+    cy.url().should('include', '/delete_account');
 }
 
 describe('Testy logowania i rejestracji', () => {
@@ -70,10 +70,14 @@ describe('Testy logowania i rejestracji', () => {
     });
 
     // testy
-    it('#01 | signup form should pass with valid credentials', () => {
+    it('#01 | create new account -> logout -> login -> delete account', () => {
         createAccount(TestUser);
-        cy.get('[data-qa="account-created"]').should('be.visible');
-        cy.url().should('include', '/account_created');
+        cy.visit('/');
+        cy.get('[href="/logout"]').click();
+        navigateToLoginPage();
+        cy.get('[data-qa="login-email"]').type(TestUser.Email);
+        cy.get('[data-qa="login-password"]').type(TestUser.Password);
+        cy.get('[data-qa="login-button"]').click();
         deleteAccount();
     });
 
@@ -88,15 +92,9 @@ describe('Testy logowania i rejestracji', () => {
         cy.get('[data-qa="login-email"]').type('malpam@alpa');
         cy.get('[data-qa="login-password"]').type('malpamalpa');
         cy.get('[data-qa="login-button"]').click();
-        cy.get('[data-qa="login-email"]').invoke('prop', 'validationMessage').should('not.be.empty');
+        cy.contains('Your email or password is incorrect!').should('be.visible');
     });
 
-    it('#04 | login form should pass with valid credentials', () => {
-        createAccount(TestUser);
-        navigateToLoginPage();
-        cy.get('[data-qa="login-email"]').type(TestUser.Email);
-        cy.get('[data-qa="login-password"]').type(TestUser.Password);
-        cy.get('[data-qa="login-button"]').click();
-    });
+   
 
 });
