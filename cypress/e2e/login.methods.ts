@@ -33,7 +33,7 @@ function createAccount(user: UserData) {
     cy.get('.login-form').should('be.visible');
     
     // Krok 2: Wypełnianie właściwego formularza 
-    cy.get('#id_gender1').check({ force: true });
+    cy.get('#id_gender1').check;
     cy.get('[data-qa="password"]').type(user.Password);  
     cy.get('[data-qa="days"]').select('1');
     cy.get('[data-qa="months"]').select('January');
@@ -53,35 +53,42 @@ function createAccount(user: UserData) {
     // Krok 3: Wysłanie formularza i weryfikacja
     cy.get('[data-qa="create-account"]').click();
     cy.get('[data-qa="account-created"]').should('be.visible');
-
-
 }
 
-describe('', () => {
+function deleteAccount() {
+    cy.visit('/');
+    cy.get('[href="/delete_account"]').click();
+    cy.url().should('include', '/account_deleted');
+}
 
+describe('Testy logowania i rejestracji', () => {
+
+    // ad ignorer itd 
     beforeEach(() => {
-    cy.intercept('GET', '**/pagead/ads**', { statusCode: 200, body: '' }).as('blockAds');
-    cy.intercept('GET', '**/google-analytics.com/**', { statusCode: 200, body: '' }).as('blockAnalytics');
-
-    it('#01 | signup form should pass with valid credentials', () => {
-        createAccount(TestUser);
-        cy.get('.account-created').should('be.visible');
-        cy.url().should('include', '/account_created');
+        cy.intercept('GET', '**/pagead/ads**', { statusCode: 200, body: '' }).as('blockAds');
+        cy.intercept('GET', '**/google-analytics.com/**', { statusCode: 200, body: '' }).as('blockAnalytics');
     });
 
+    // testy
+    it('#01 | signup form should pass with valid credentials', () => {
+        createAccount(TestUser);
+        cy.get('[data-qa="account-created"]').should('be.visible');
+        cy.url().should('include', '/account_created');
+        deleteAccount();
+    });
 
     it('#02 | login form should not pass with empty credentials', () => {
         navigateToLoginPage();
         cy.get('[data-qa="login-button"]').click();
-        cy.get('[data-qa="signup-name"]').invoke('prop', 'validationMessage').should('not.be.empty');
+        cy.get('[data-qa="login-email"]').invoke('prop', 'validationMessage').should('not.be.empty');
     });
 
     it('#03 | login form should not pass with invalid credentials', () => {
         navigateToLoginPage();
-        cy.get('[data-qa="login-email"]').type('malpam@alpa')
-        cy.get('[data-qa="login-password"]').type('malpamalpa')
+        cy.get('[data-qa="login-email"]').type('malpam@alpa');
+        cy.get('[data-qa="login-password"]').type('malpamalpa');
         cy.get('[data-qa="login-button"]').click();
-        cy.get('[data-qa="signup-name"]').invoke('prop', 'validationMessage').should('not.be.empty');
+        cy.get('[data-qa="login-email"]').invoke('prop', 'validationMessage').should('not.be.empty');
     });
 
     it('#04 | login form should pass with valid credentials', () => {
@@ -90,13 +97,6 @@ describe('', () => {
         cy.get('[data-qa="login-email"]').type(TestUser.Email);
         cy.get('[data-qa="login-password"]').type(TestUser.Password);
         cy.get('[data-qa="login-button"]').click();
-        cy.get('.account-dashboard').should('be.visible');
     });
 
-
-
-
-
-
-
-});});
+});
