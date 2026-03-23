@@ -1,47 +1,96 @@
 /// <reference types="cypress"/>
 
+interface UserData {
+    Name: string;
+    Email: string;
+    Password: string;
+}
+
+const TestUser: UserData = {
+    Name: 'malpa',
+    Email: 'malpa@malpa',
+    Password: 'haslomalpa'
+};
+
 function navigateToLoginPage() {
     cy.visit('/'); // https://automationteststore.com/
     cy.get('[href="/login"]').click();
+
     cy.get('.login-form').should('be.visible');
     cy.get('.signup-form').should('be.visible');
-    cy.get('.header-middle').should('be.visible');
 }
 
-function createAccount(name: string, email: string, password: string) {
+function createAccount(user: UserData) {
+
     navigateToLoginPage();
-    cy.get('[data-qa="signup-name"]').type(name);
-    cy.get('[data-qa="signup-email"]').type(email);
-    cy.get('[data-qa="signup-name"]').should('have.value', name);
-    cy.get('[data-qa="signup-email"]').should('have.value', email);
+
+    // Krok 1: Wstępna rejestracja
+    cy.get('[data-qa="signup-name"]').type(user.Name);
+    cy.get('[data-qa="signup-email"]').type(user.Email);
     cy.get('[data-qa="signup-button"]').click();
-    cy.get('.header-middle').should('be.visible');
+    
+    // Oczekiwanie na załadowanie drugiego formularza
     cy.get('.login-form').should('be.visible');
-    cy.get('#id_gender1').check();
-    cy.get('#id_gender1').should('be.checked');
-    cy.get('[data-qa="password"]').type(password);
-    cy.get('[data-qa="password"]').should('have.value', password);
+    
+    // Krok 2: Wypełnianie właściwego formularza 
+    cy.get('#id_gender1').check({ force: true });
+    cy.get('[data-qa="password"]').type(user.Password);  
+    cy.get('[data-qa="days"]').select('1');
+    cy.get('[data-qa="months"]').select('January');
+    cy.get('[data-qa="years"]').select('2000');
+    cy.get('#newsletter').check();
+    cy.get('#optin').check();
+    cy.get('[data-qa="first_name"]').type(user.Name);
+    cy.get('[data-qa="last_name"]').type('Testowy');
+    cy.get('[data-qa="company"]').type('QA Corp');
+    cy.get('[data-qa="address"]').type('Testowa 15');
+    cy.get('[data-qa="country"]').select('United States');
+    cy.get('[data-qa="state"]').type('New York');
+    cy.get('[data-qa="city"]').type('New York City');
+    cy.get('[data-qa="zipcode"]').type('12345');
+    cy.get('[data-qa="mobile_number"]').type('1234567890');
+    
+    // Krok 3: Wysłanie formularza i weryfikacja
+    cy.get('[data-qa="create-account"]').click();
+    cy.get('[data-qa="account-created"]').should('be.visible');
+
 
 }
 
 describe('', () => {
 
+    beforeEach(() => {
+    cy.intercept('GET', '**/pagead/ads**', { statusCode: 200, body: '' }).as('blockAds');
+    cy.intercept('GET', '**/google-analytics.com/**', { statusCode: 200, body: '' }).as('blockAnalytics');
 
-    /*it('#01 | login form should not pass with invalid credentials', () => {
+    it('#01 | signup form should pass with valid credentials', () => {
+        createAccount(TestUser);
+        cy.get('.account-created').should('be.visible');
+        cy.url().should('include', '/account_created');
+    });
+
+
+    it('#02 | login form should not pass with empty credentials', () => {
         navigateToLoginPage();
-
-        cy.get('[data-qa="login-email"]').type('malpamalpa')
-        cy.get('[data-qa="login-password"]').type('malpamalpa')
-
         cy.get('[data-qa="login-button"]').click();
+        cy.get('[data-qa="signup-name"]').invoke('prop', 'validationMessage').should('not.be.empty');
+    });
 
-    });*/
+    it('#03 | login form should not pass with invalid credentials', () => {
+        navigateToLoginPage();
+        cy.get('[data-qa="login-email"]').type('malpam@alpa')
+        cy.get('[data-qa="login-password"]').type('malpamalpa')
+        cy.get('[data-qa="login-button"]').click();
+        cy.get('[data-qa="signup-name"]').invoke('prop', 'validationMessage').should('not.be.empty');
+    });
 
-    it('#02 | login form should pass with valid credentials', () => {
-        createAccount('malpamalpa', 'malpamalpa@example.com', 'haslomalpa');
-
-
-
+    it('#04 | login form should pass with valid credentials', () => {
+        createAccount(TestUser);
+        navigateToLoginPage();
+        cy.get('[data-qa="login-email"]').type(TestUser.Email);
+        cy.get('[data-qa="login-password"]').type(TestUser.Password);
+        cy.get('[data-qa="login-button"]').click();
+        cy.get('.account-dashboard').should('be.visible');
     });
 
 
@@ -50,4 +99,4 @@ describe('', () => {
 
 
 
-});
+});});
