@@ -95,6 +95,17 @@ describe('Testy logowania i rejestracji', () => {
         cy.contains('Your email or password is incorrect!').should('be.visible');
     });
 
+    it('#04 | Register User with existing email', () => {
+        createAccount(TestUser);
+        cy.get('[data-qa="continue-button"]').click();
+        cy.get('[href="/logout"]').click();
+        cy.get('[href="/login"]').click();
+        cy.get('[data-qa="signup-name"]').type('Another User');
+        cy.get('[data-qa="signup-email"]').type(TestUser.Email);
+        cy.get('[data-qa="signup-button"]').click();
+        cy.contains('Email Address already exist!').should('be.visible');        
+    });
+
    
 
 });
