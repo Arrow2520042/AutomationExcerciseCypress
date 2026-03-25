@@ -61,7 +61,7 @@ function deleteAccount() {
     cy.url().should('include', '/delete_account');
 }
 
-describe('Testy logowania i rejestracji', () => {
+describe('Testy rejestracji i logowania', () => {
 
     // ad ignorer itd 
     beforeEach(() => {
