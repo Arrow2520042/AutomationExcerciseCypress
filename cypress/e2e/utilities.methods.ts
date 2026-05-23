@@ -1,8 +1,11 @@
 /// <reference types="cypress"/>
 
-describe('Test contact us and cases page', () => {
+import { productsPage } from '../selectors/productsPageSelectors';
+import { urls } from '../support/urls';
 
-    // ad ignorer itd 
+describe('Contact us, cases, and products tests', () => {
+
+    // ad blockers etc.
     beforeEach(() => {
         cy.intercept('GET', '**/pagead/ads**', { statusCode: 200, body: '' }).as('blockAds');
         cy.intercept('GET', '**/google-analytics.com/**', { statusCode: 200, body: '' }).as('blockAnalytics');
@@ -26,6 +29,45 @@ describe('Test contact us and cases page', () => {
         cy.visit('/');
         cy.get('a[href="/test_cases"]').first().click();
         cy.url().should('include', '/test_cases');
+    });
+
+    it('#03 | should search for product and show results', () => {
+        const searchTerm = 'Top';
+
+        cy.visit(urls.productsPage);
+        cy.contains(productsPage.productsTitle, 'All Products').should('be.visible');
+
+        cy.get(productsPage.searchProductInput).should('be.visible').type(searchTerm);
+        cy.get(productsPage.submitSearchBtn).should('be.visible').click();
+
+        cy.contains(productsPage.productsTitle, 'Searched Products').should('be.visible');
+        cy.get(productsPage.productsList)
+            .find(productsPage.productCard)
+            .should('have.length.greaterThan', 0);
+
+        cy.get(productsPage.productName).then($names => {
+            const hasMatch = Array.from($names, item => item.textContent || '')
+                .some(name => name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+            expect(hasMatch).to.eq(true);
+        });
+    });
+
+    it('#04 | should add product to cart', () => {
+        cy.intercept('GET', '**/add_to_cart/**').as('addToCart');
+        cy.visit(urls.productsPage);
+
+        cy.get(productsPage.productCard).first().trigger('mouseover');
+        cy.get(productsPage.addCartBtn).first().click();
+        cy.wait('@addToCart');
+
+        cy.contains(productsPage.viewCartLink, 'View Cart').should('be.visible').click();
+
+        cy.url().should('include', urls.cartPage);
+        cy.contains('Cart is empty').should('not.be.visible');
+        cy.get(productsPage.cartDescription)
+            .should('be.visible')
+            .and('have.length.greaterThan', 0);
     });
 
 });

@@ -24,15 +24,15 @@ function createAccount(user: UserData) {
 
     navigateToLoginPage();
 
-    // Krok 1: Wstępna rejestracja
+    // Step 1: Initial signup
     cy.get('[data-qa="signup-name"]').type(user.Name);
     cy.get('[data-qa="signup-email"]').type(user.Email);
     cy.get('[data-qa="signup-button"]').click();
     
-    // Oczekiwanie na załadowanie drugiego formularza
+    // Wait for the second form to load
     cy.get('.login-form').should('be.visible');
     
-    // Krok 2: Wypełnianie właściwego formularza 
+    // Step 2: Fill the main form
     cy.get('#id_gender1').check({ force: true });
     cy.get('[data-qa="password"]').type(user.Password);  
     cy.get('[data-qa="days"]').select('1');
@@ -50,7 +50,7 @@ function createAccount(user: UserData) {
     cy.get('[data-qa="zipcode"]').type('12345');
     cy.get('[data-qa="mobile_number"]').type('1234567890');
     
-    // Krok 3: Wysłanie formularza i weryfikacja
+    // Step 3: Submit and verify
     cy.get('[data-qa="create-account"]').click();
     cy.get('[data-qa="account-created"]').should('be.visible');
 }
@@ -61,15 +61,41 @@ function deleteAccount() {
     cy.url().should('include', '/delete_account');
 }
 
-describe('Testy rejestracji i logowania', () => {
+describe('Registration and login tests', () => {
 
-    // ad ignorer itd 
+    // ad blockers etc.
     beforeEach(() => {
         cy.intercept('GET', '**/pagead/ads**', { statusCode: 200, body: '' }).as('blockAds');
         cy.intercept('GET', '**/google-analytics.com/**', { statusCode: 200, body: '' }).as('blockAnalytics');
     });
 
-    // testy
+    // tests
+
+    it('#00 | delete test account if exists', () => {
+        navigateToLoginPage();
+        cy.get('[data-qa="login-email"]').type(TestUser.Email);
+        cy.get('[data-qa="login-password"]').type(TestUser.Password);
+        cy.get('[data-qa="login-button"]').click();
+
+        const invalidLoginText = 'Your email or password is incorrect!';
+
+        cy.get('body', { timeout: 10000 }).then($body => {
+            if ($body.find('[href="/delete_account"]').length) {
+                deleteAccount();
+                return;
+            }
+
+            if ($body.text().includes(invalidLoginText)) {
+                cy.contains(invalidLoginText).should('be.visible');
+                return;
+            }
+
+            cy.get('[href="/delete_account"]', { timeout: 10000 }).should('be.visible');
+            deleteAccount();
+        });
+    })
+
+
     it('#01 | create new account -> logout -> login -> delete account', () => {
         createAccount(TestUser);
         cy.visit('/');
